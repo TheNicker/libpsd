@@ -52,31 +52,45 @@ extern void psd_image_blend_free(psd_context * context);
 static psd_status psd_main_loop(psd_context * context);
 
 
-static psd_status psd_image_load_tag(psd_context ** dst_context, psd_char * file_name, psd_load_tag load_tag)
+static psd_status psd_image_load_tag(psd_context ** dst_context, psd_char * buffer, psd_load_tag load_tag, size_t size )
 {
 	psd_context * context;
 	psd_status status;
 
 	if(dst_context == NULL)
 		return psd_status_invalid_context;
-	if(file_name == NULL)
+	if(buffer == NULL)
 		return psd_status_invalid_file;
 
 	context = (psd_context *)psd_malloc(sizeof(psd_context));
 	if(context == NULL)
 		return psd_status_malloc_failed;
 	memset(context, 0, sizeof(psd_context));
+    context->file_name_or_buffer = buffer;
+    if (size > 0)
+    {
+        // buffer is a memory block
+        psd_stream_init_memory(context);
+        context->size = size;
+        context->stream.file_length = size;
+    }
 
-	context->file_name = file_name;
-	context->file = psd_fopen(file_name);
-	if (context->file == NULL)
-	{
-		psd_free(context);
-		return psd_status_invalid_file;
-	}
+    else
+    {
+        // buffer is a filename
+        psd_stream_init_file(context);
+        context->file = psd_fopen(buffer);
+    	if (context->file == NULL)
+    	{
+    		psd_free(context);
+    		return psd_status_invalid_file;
+    	}
+	
+     	context->stream.file_length = psd_fsize(context->file);
+    }
 	
 	context->state = PSD_FILE_HEADER;
-	context->stream.file_length = psd_fsize(context->file);
+
 	context->load_tag = load_tag;
 	status = psd_main_loop(context);
 	
@@ -95,39 +109,68 @@ static psd_status psd_image_load_tag(psd_context ** dst_context, psd_char * file
 	return status;
 }
 
+// Load from file
 psd_status psd_image_load(psd_context ** dst_context, psd_char * file_name)
 {
-	return psd_image_load_tag(dst_context, file_name, psd_load_tag_all);
+	return psd_image_load_tag(dst_context, file_name, psd_load_tag_all, 0);
 }
 
 psd_status psd_image_load_header(psd_context ** dst_context, psd_char * file_name)
 {
-	return psd_image_load_tag(dst_context, file_name, psd_load_tag_header);
+	return psd_image_load_tag(dst_context, file_name, psd_load_tag_header, 0);
 }
 
 psd_status psd_image_load_layer(psd_context ** dst_context, psd_char * file_name)
 {
-	return psd_image_load_tag(dst_context, file_name, psd_load_tag_layer);
+	return psd_image_load_tag(dst_context, file_name, psd_load_tag_layer ,0);
 }
 
-psd_status psd_image_load_merged(psd_context ** dst_context, psd_char * file_name)
+psd_status psd_image_load_merged(psd_context ** dst_context, psd_char * buffer)
 {
-	return psd_image_load_tag(dst_context, file_name, psd_load_tag_merged);
+	return psd_image_load_tag(dst_context, buffer, psd_load_tag_merged , 0);
 }
 
 psd_status psd_image_load_thumbnail(psd_context ** dst_context, psd_char * file_name)
 {
-	return psd_image_load_tag(dst_context, file_name, psd_load_tag_thumbnail);
+	return psd_image_load_tag(dst_context, file_name, psd_load_tag_thumbnail ,0 );
 }
 
 psd_status psd_image_load_exif(psd_context ** dst_context, psd_char * file_name)
 {
 #ifdef PSD_INCLUDE_LIBXML
-	return psd_image_load_tag(dst_context, file_name, psd_load_tag_exif);
+	return psd_image_load_tag(dst_context, file_name, psd_load_tag_exif , 0);
 #else
 	return psd_status_unsupport_yet;
 #endif
 }
+
+//Load from memory
+
+psd_status psd_image_load_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size)
+{
+    return psd_image_load_tag(dst_context, buffer, psd_load_tag_all, size);
+}
+
+psd_status psd_image_load_header_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size)
+{
+    return psd_image_load_tag(dst_context, buffer, psd_load_tag_header, size);
+}
+
+psd_status psd_image_load_layer_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size)
+{
+    return psd_image_load_tag(dst_context, buffer, psd_load_tag_layer, size);
+}
+
+psd_status psd_image_load_merged_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size)
+{
+    return psd_image_load_tag(dst_context, buffer, psd_load_tag_merged, size);
+}
+
+psd_status psd_image_load_thumbnail_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size)
+{
+    return psd_image_load_tag(dst_context, buffer, psd_load_tag_thumbnail, size);
+}
+
 
 psd_status psd_image_free(psd_context * context)
 {

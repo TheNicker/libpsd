@@ -308,6 +308,10 @@ typedef enum {
 	psd_print_user_defined	= 2,
 } psd_print_style;
 
+typedef psd_int(*psd_stream_get_func_ptr)(void * context, psd_uchar * buffer, psd_int length);
+typedef psd_int(*psd_stream_get_null_func_ptr)(void * context, psd_int length);
+typedef void(*psd_stream_free_func_ptr)(void * context);
+
 typedef struct _psd_stream
 {
 	psd_uchar *					buffer;
@@ -315,6 +319,11 @@ typedef struct _psd_stream
 	psd_int						read_out_length;
 	psd_int						file_length;
 	psd_int						current_pos;
+
+    psd_stream_get_func_ptr         stream_get;
+    psd_stream_get_null_func_ptr    stream_get_null;
+    psd_stream_free_func_ptr        stream_free;
+
 } psd_stream;
 
 
@@ -1209,8 +1218,9 @@ typedef struct _psd_layer_type_tool
 
 typedef struct _psd_context
 {
-	psd_char *					file_name;
-	void *						file;
+    psd_char *					file_name_or_buffer;
+	size_t						size;
+   	void *						file;
 	psd_stream					stream;
 	psd_uint					state;
 	psd_load_tag				load_tag;
@@ -1322,6 +1332,13 @@ psd_status psd_image_load_header(psd_context ** dst_context, psd_char * file_nam
 psd_status psd_image_load_layer(psd_context ** dst_context, psd_char * file_name);
 psd_status psd_image_load_merged(psd_context ** dst_context, psd_char * file_name);
 psd_status psd_image_load_thumbnail(psd_context ** dst_context, psd_char * file_name);
+
+psd_status psd_image_load_from_memory(psd_context ** dst_context, psd_char * file_name);
+psd_status psd_image_load_header_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size);
+psd_status psd_image_load_layer_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size);
+psd_status psd_image_load_merged_from_memory(psd_context ** dst_context, psd_char *buffer, size_t size);
+psd_status psd_image_load_thumbnail_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size);
+
 psd_status psd_image_load_exif(psd_context ** dst_context, psd_char * file_name);
 psd_status psd_image_free(psd_context * context);
 psd_status psd_adjustment_layer_update(psd_layer_record * layer);

@@ -27,6 +27,7 @@
 #include "psd_system.h"
 #include "psd_stream.h"
 #include "psd_color.h"
+#include <string.h>
 
 
 static
@@ -54,6 +55,13 @@ psd_bool psd_test_big_endian(void)
 }
 
 psd_int psd_stream_get(psd_context * context, psd_uchar * buffer, psd_int length)
+{
+    return context->stream.stream_get(context, buffer, length);
+}
+
+
+
+psd_int psd_stream_get_file(psd_context * context, psd_uchar * buffer, psd_int length)
 {
 	psd_stream * stream;
 	psd_int left, read = 0;
@@ -114,7 +122,27 @@ psd_int psd_stream_get(psd_context * context, psd_uchar * buffer, psd_int length
 	return read;
 }
 
+psd_int psd_stream_get_memory(psd_context * context, psd_uchar * buffer, psd_int length)
+{
+	psd_stream * stream;
+	psd_int left, read = 0;
+
+	if(buffer == NULL)
+		return 0;
+	
+	psd_assert(length >= 0);
+	stream = &context->stream;
+    memcpy(buffer, context->file_name_or_buffer + stream->current_pos, length);
+	stream->current_pos += length;
+	return length;
+}
 psd_int psd_stream_get_null(psd_context * context, psd_int length)
+{
+    return context->stream.stream_get_null(context, length);
+}
+
+
+psd_int psd_stream_get_null_file(psd_context * context, psd_int length)
 {
 	psd_stream * stream;
 	psd_int left, read = 0;
@@ -170,6 +198,23 @@ psd_int psd_stream_get_null(psd_context * context, psd_int length)
 	stream->current_pos += read;
 
 	return read;
+}
+
+psd_int psd_stream_get_null_memory(psd_context * context, psd_int length)
+{
+	psd_stream * stream;
+	psd_int left, read = 0;
+
+	psd_assert(length >= 0);
+
+	if(length <= 0)
+		return 0;
+
+	stream = &context->stream;
+
+	stream->current_pos += length;
+
+	return length;
 }
 
 psd_bool psd_stream_get_bool(psd_context * context)
@@ -367,6 +412,11 @@ psd_blend_mode psd_stream_get_blend_mode(psd_context * context)
 
 void psd_stream_free(psd_context * context)
 {
+    context->stream.stream_free(context);
+}
+
+void psd_stream_free_file(psd_context * context)
+{
 	if (context->stream.buffer != NULL)
 	{
 		psd_free(context->stream.buffer);
@@ -379,3 +429,24 @@ void psd_stream_free(psd_context * context)
 		context->file = NULL;
 	}
 }
+
+void psd_stream_free_memory(psd_context * context)
+{
+
+}
+
+void psd_stream_init_file(psd_context * context)
+{
+    context->stream.stream_free = psd_stream_free_file;
+    context->stream.stream_get = psd_stream_get_file;
+    context->stream.stream_get_null = psd_stream_get_null_file;
+}
+
+void psd_stream_init_memory(psd_context * context)
+{
+    context->stream.stream_free = psd_stream_free_memory;
+    context->stream.stream_get = psd_stream_get_memory;
+    context->stream.stream_get_null = psd_stream_get_null_memory;
+}
+
+

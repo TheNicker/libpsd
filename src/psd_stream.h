@@ -23,7 +23,8 @@ psd_double psd_stream_get_double(psd_context * context);
 psd_argb_color psd_stream_get_space_color(psd_context * context);
 psd_blend_mode psd_stream_get_blend_mode(psd_context * context);
 void psd_stream_free(psd_context * context);
-
+void psd_stream_init_file(psd_context * context);
+void psd_stream_init_memory(psd_context * context);
 
 #ifdef __cplusplus
 }
