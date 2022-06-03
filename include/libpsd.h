@@ -255,7 +255,8 @@ typedef enum {
 	psd_layer_effects_bevel_emboss_inner_shadow,
 	psd_layer_effects_bevel_emboss_inner_light,
 	psd_layer_effects_bevel_emboss_texture
-};
+} psd_layer_effects_bevel_emboss_type;
+
 #define psd_layer_effects_image_count		(psd_layer_effects_bevel_emboss_texture + 1)
 
 typedef enum {
@@ -1333,7 +1334,7 @@ psd_status psd_image_load_layer(psd_context ** dst_context, psd_char * file_name
 psd_status psd_image_load_merged(psd_context ** dst_context, psd_char * file_name);
 psd_status psd_image_load_thumbnail(psd_context ** dst_context, psd_char * file_name);
 
-psd_status psd_image_load_from_memory(psd_context ** dst_context, psd_char * file_name);
+psd_status psd_image_load_from_memory(psd_context ** dst_context, psd_char * file_name, size_t size);
 psd_status psd_image_load_header_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size);
 psd_status psd_image_load_layer_from_memory(psd_context ** dst_context, psd_char * buffer, size_t size);
 psd_status psd_image_load_merged_from_memory(psd_context ** dst_context, psd_char *buffer, size_t size);

@@ -4,21 +4,21 @@
 
 // we need libjpeg to get the thumbnail
 // You can download libjpeg from http://sourceforge.net/projects/libjpeg
-#if 1
+#if 0
 #define PSD_INCLUDE_LIBJPEG
 #endif
 
 
 // Photoshop CS and CS2 use the zip arithmetic for data uncompression (compression = 3)
 // You can download zlib from http://www.zlib.net
-#if 1
+#if 0
 #define PSD_INCLUDE_ZLIB
 #endif
 
 
 // get all of the image resource
 // it takes more time and memory
-#if 1
+#if 0
 #define PSD_GET_ALL_IMAGE_RESOURCE
 #endif
 
